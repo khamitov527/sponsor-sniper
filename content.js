@@ -45,24 +45,19 @@ function getVideoId() {
 // Function to communicate with backend API to get sponsor segments
 async function getSponsorSegments(videoId) {
   try {
-    // Test data for demonstration
-    return [
-      {
-        startTime: 5,
-        endTime: 45
-      },
-      {
-        startTime: 120,
-        endTime: 150
-      }
-    ];
+    // Connect to our backend API to get sponsor segments
+    const response = await fetch(`http://localhost:8080/sponsors?v=${videoId}&threshold=0.3`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch sponsor segments');
+    }
+    const data = await response.json();
     
-    // This will be replaced with actual API endpoint
-    // const response = await fetch(`https://api.example.com/sponsor-segments?videoId=${videoId}`);
-    // if (!response.ok) {
-    //   throw new Error('Failed to fetch sponsor segments');
-    // }
-    // return await response.json();
+    // Check if the API call was successful
+    if (!data.success) {
+      throw new Error(data.error || 'API error occurred');
+    }
+    
+    return data.sponsors || [];
   } catch (error) {
     console.error('Error fetching sponsor segments:', error);
     return [];
