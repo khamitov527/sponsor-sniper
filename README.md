@@ -25,6 +25,8 @@ Sponsor Sniper uses a machine learning approach to detect sponsor segments in Yo
 2. Set up the backend server:
    ```
    cd backend
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
    pip install -r requirements.txt
    python main.py
    ```

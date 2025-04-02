@@ -38,12 +38,18 @@ The classifier will be improved in the following ways:
 
 ## Setup and Running
 
-1. Install dependencies:
+1. Create and activate a virtual environment:
+   ```
+   python -m venv venv
+   source venv/bin/activate  # On Windows, use: venv\Scripts\activate
+   ```
+
+2. Install dependencies:
    ```
    pip install -r requirements.txt
    ```
 
-2. Run the server:
+3. Run the server:
    ```
    python main.py
    ```
