@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Sponsor Sniper</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      width: 300px;
+      padding: 10px;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header img {
+      width: 24px;
+      height: 24px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 18px;
+    }
+    .toggle {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 24px;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #2196F3;
+    }
+    input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+    .footer {
+      font-size: 12px;
+      color: #666;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Sponsor Sniper</h1>
+    </div>
+    
+    <div class="toggle">
+      <span>Enable sponsor skipping</span>
+      <label class="switch">
+        <input type="checkbox" id="enable-skipping" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="toggle">
+      <span>Show notifications when skipping</span>
+      <label class="switch">
+        <input type="checkbox" id="show-notifications" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="footer">
+      <p>Sponsor Sniper automatically detects and skips sponsorship segments in YouTube videos.</p>
+    </div>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
