@@ -1,0 +1,13 @@
+Sponsor Detection Log for Video ID: dQw4w9WgXcQ
+Timestamp: 2025-04-02 19:19:40
+Using threshold: 0.3
+
+Fetching transcript...
+Transcript length: 59 segments
+
+Segments with non-zero probability of being sponsors:
+--------------------------------------------------------------------------------
+
+Classifying segments with threshold: 0.3
+
+Detected 0 sponsor segments:

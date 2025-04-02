@@ -1,0 +1,74 @@
+{
+  "video_id": "hCyvqRq5YmM",
+  "threshold": 0.3,
+  "sponsors": [
+    {
+      "startTime": 122.88,
+      "endTime": 149.239
+    },
+    {
+      "startTime": 640.36,
+      "endTime": 662.88
+    },
+    {
+      "startTime": 1855.44,
+      "endTime": 1893.08
+    },
+    {
+      "startTime": 1922.919,
+      "endTime": 1957.3600000000001
+    },
+    {
+      "startTime": 2164.839,
+      "endTime": 2195.52
+    },
+    {
+      "startTime": 2837.64,
+      "endTime": 2859.72
+    },
+    {
+      "startTime": 3553.0,
+      "endTime": 3576.559
+    },
+    {
+      "startTime": 3565.72,
+      "endTime": 3589.76
+    },
+    {
+      "startTime": 3599.52,
+      "endTime": 3620.2400000000002
+    },
+    {
+      "startTime": 3640.16,
+      "endTime": 3674.319
+    },
+    {
+      "startTime": 7856.0,
+      "endTime": 7883.719
+    },
+    {
+      "startTime": 9848.279,
+      "endTime": 9879.52
+    },
+    {
+      "startTime": 10036.279,
+      "endTime": 10056.960000000001
+    },
+    {
+      "startTime": 10252.08,
+      "endTime": 10279.358999999999
+    },
+    {
+      "startTime": 10832.479,
+      "endTime": 10858.399
+    },
+    {
+      "startTime": 11238.04,
+      "endTime": 11266.8
+    },
+    {
+      "startTime": 11388.239,
+      "endTime": 11411.04
+    }
+  ]
+}

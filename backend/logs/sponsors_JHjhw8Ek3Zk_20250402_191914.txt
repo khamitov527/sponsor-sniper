@@ -1,0 +1,205 @@
+Sponsor Detection Log for Video ID: JHjhw8Ek3Zk
+Timestamp: 2025-04-02 19:19:14
+Using threshold: 0.3
+
+Fetching transcript...
+Transcript length: 2160 segments
+
+Segments with non-zero probability of being sponsors:
+--------------------------------------------------------------------------------
+Segment 542 (1089.8s - 1100.8s): 0.33 probability
+Text: of dopamine to indicate that it was worth paying attention to that bush of berries and that eating t...
+--------------------------------------------------------------------------------
+Segment 543 (1091.8s - 1102.5s): 0.33 probability
+Text: worth paying attention to that bush of berries and that eating the berries was a good idea to do and...
+--------------------------------------------------------------------------------
+Segment 544 (1093.6s - 1104.2s): 0.33 probability
+Text: berries and that eating the berries was a good idea to do and then you should do it again and that m...
+--------------------------------------------------------------------------------
+Segment 545 (1095.3s - 1107.5s): 0.33 probability
+Text: a good idea to do and then you should do it again and that means that thanks to that dopamine the ne...
+--------------------------------------------------------------------------------
+Segment 546 (1096.9s - 1109.3s): 0.33 probability
+Text: it again and that means that thanks to that dopamine the next time you're walking in the woods your ...
+--------------------------------------------------------------------------------
+Segment 1111 (2258.5s - 2269.4s): 0.33 probability
+Text: that was my follow-up book to how to break up with your phone is called the power of fun um but the ...
+--------------------------------------------------------------------------------
+Segment 1112 (2259.7s - 2270.7s): 0.33 probability
+Text: break up with your phone is called the power of fun um but the more of these real life embodied expe...
+--------------------------------------------------------------------------------
+Segment 1113 (2261.0s - 2272.8s): 0.33 probability
+Text: power of fun um but the more of these real life embodied experiences that we're having ideally with ...
+--------------------------------------------------------------------------------
+Segment 1114 (2263.7s - 2275.3s): 0.33 probability
+Text: real life embodied experiences that we're having ideally with some well they they will by definition...
+--------------------------------------------------------------------------------
+Segment 1115 (2266.0s - 2277.2s): 0.33 probability
+Text: we're having ideally with some well they they will by definition have an element of novelty because ...
+--------------------------------------------------------------------------------
+Segment 1195 (2430.6s - 2441.8s): 0.33 probability
+Text: whoever like how they're paying attention to the phone instead of the other person and that their pa...
+--------------------------------------------------------------------------------
+Segment 1196 (2432.8s - 2443.7s): 0.33 probability
+Text: attention to the phone instead of the other person and that their partner doesn't seem to get why th...
+--------------------------------------------------------------------------------
+Segment 1197 (2434.7s - 2445.6s): 0.33 probability
+Text: other person and that their partner doesn't seem to get why this is such a big deal and I always say...
+--------------------------------------------------------------------------------
+Segment 1198 (2437.0s - 2447.8s): 0.33 probability
+Text: doesn't seem to get why this is such a big deal and I always say if you feel like your partner or sp...
+--------------------------------------------------------------------------------
+Segment 1199 (2438.2s - 2449.9s): 0.33 probability
+Text: big deal and I always say if you feel like your partner or spouse or whatever is use of the phone is...
+--------------------------------------------------------------------------------
+Segment 1231 (2496.0s - 2507.9s): 0.33 probability
+Text: are and you're you're you should be listened to so that's one thing um we touched on sleep phones ar...
+--------------------------------------------------------------------------------
+Segment 1232 (2498.1s - 2509.7s): 0.33 probability
+Text: listened to so that's one thing um we touched on sleep phones are having a huge impact on our sleep ...
+--------------------------------------------------------------------------------
+Segment 1233 (2500.4s - 2511.6s): 0.33 probability
+Text: touched on sleep phones are having a huge impact on our sleep that's a big deal not only does it mak...
+--------------------------------------------------------------------------------
+Segment 1234 (2501.8s - 2513.1s): 0.33 probability
+Text: huge impact on our sleep that's a big deal not only does it make us tired but sleep deprivation you ...
+--------------------------------------------------------------------------------
+Segment 1235 (2503.4s - 2514.8s): 0.33 probability
+Text: deal not only does it make us tired but sleep deprivation you know affects our cortisol levels corti...
+--------------------------------------------------------------------------------
+Segment 1311 (2641.6s - 2650.7s): 0.67 probability
+Text: they randomly wandered into a store and picked something that they wanted themselves or is it becaus...
+--------------------------------------------------------------------------------
+Segment 1312 (2643.6s - 2652.4s): 0.67 probability
+Text: picked something that they wanted themselves or is it because someone was recommended to them or the...
+--------------------------------------------------------------------------------
+Segment 1313 (2644.8s - 2654.9s): 0.67 probability
+Text: themselves or is it because someone was recommended to them or they saw a photograph and a sponsored...
+--------------------------------------------------------------------------------
+Segment 1314 (2646.4s - 2656.6s): 0.67 probability
+Text: recommended to them or they saw a photograph and a sponsored post on Instagram how did they find the...
+--------------------------------------------------------------------------------
+Segment 1315 (2647.6s - 2658.8s): 0.67 probability
+Text: photograph and a sponsored post on Instagram how did they find the person they're dating and are in ...
+--------------------------------------------------------------------------------
+Segment 2032 (4167.8s - 4183.2s): 0.33 probability
+Text: some really interesting stats around people that get bariatric surgery and out the other side of it ...
+--------------------------------------------------------------------------------
+Segment 2033 (4169.3s - 4187.3s): 0.33 probability
+Text: people that get bariatric surgery and out the other side of it the suicide risk is really really hig...
+--------------------------------------------------------------------------------
+Segment 2034 (4172.2s - 4188.9s): 0.33 probability
+Text: out the other side of it the suicide risk is really really high now bariatric surgery is a pretty bi...
+--------------------------------------------------------------------------------
+Segment 2035 (4174.2s - 4190.6s): 0.33 probability
+Text: risk is really really high now bariatric surgery is a pretty big deal and sometimes the American hea...
+--------------------------------------------------------------------------------
+Segment 2036 (4176.9s - 4191.7s): 0.33 probability
+Text: surgery is a pretty big deal and sometimes the American healthc care system leaves gwes in them and ...
+--------------------------------------------------------------------------------
+Segment 2084 (4288.4s - 4298.7s): 0.33 probability
+Text: that's one of the reasons I think yes you can because we're using them as drugs if you take away the...
+--------------------------------------------------------------------------------
+Segment 2085 (4289.5s - 4301.5s): 0.33 probability
+Text: you can because we're using them as drugs if you take away the drug you're going to have withdrawal ...
+--------------------------------------------------------------------------------
+Segment 2086 (4291.4s - 4303.5s): 0.33 probability
+Text: drugs if you take away the drug you're going to have withdrawal and you're also going to have to dea...
+--------------------------------------------------------------------------------
+Segment 2087 (4293.8s - 4305.6s): 0.33 probability
+Text: going to have withdrawal and you're also going to have to deal with whatever it was that you were us...
+--------------------------------------------------------------------------------
+Segment 2088 (4295.4s - 4307.4s): 0.33 probability
+Text: going to have to deal with whatever it was that you were using the drug to deal with and that's real...
+--------------------------------------------------------------------------------
+Segment 2089 (4296.6s - 4308.8s): 0.33 probability
+Text: was that you were using the drug to deal with and that's really hard so I you know in I'm in the mid...
+--------------------------------------------------------------------------------
+Segment 2111 (4340.9s - 4351.2s): 0.33 probability
+Text: purpose you know you're mindless scrolling it's there for you're doing it for a reason and if you re...
+--------------------------------------------------------------------------------
+Segment 2112 (4342.3s - 4353.2s): 0.33 probability
+Text: scrolling it's there for you're doing it for a reason and if you remove that you're going to uncover...
+--------------------------------------------------------------------------------
+Segment 2113 (4343.9s - 4354.6s): 0.33 probability
+Text: for a reason and if you remove that you're going to uncover what that reason is and you do have to b...
+--------------------------------------------------------------------------------
+Segment 2114 (4346.1s - 4356.8s): 0.33 probability
+Text: you're going to uncover what that reason is and you do have to be ready to deal with that but I can ...
+--------------------------------------------------------------------------------
+Segment 2115 (4347.6s - 4358.6s): 0.33 probability
+Text: is and you do have to be ready to deal with that but I can assure you that if you can get out of tha...
+--------------------------------------------------------------------------------
+Segment 2135 (4390.5s - 4399.8s): 0.33 probability
+Text: you back on and we can talk about that but let's leave this one here bring it into land um people mi...
+--------------------------------------------------------------------------------
+Segment 2136 (4391.6s - 4401.9s): 0.33 probability
+Text: but let's leave this one here bring it into land um people might want to sign up for the mailing lis...
+--------------------------------------------------------------------------------
+Segment 2137 (4392.7s - 4403.8s): 0.33 probability
+Text: into land um people might want to sign up for the mailing list for the substack they want to check o...
+--------------------------------------------------------------------------------
+Segment 2138 (4394.7s - 4406.1s): 0.33 probability
+Text: up for the mailing list for the substack they want to check out the book where should they go what's...
+--------------------------------------------------------------------------------
+Segment 2139 (4397.0s - 4408.2s): 0.33 probability
+Text: they want to check out the book where should they go what's going on my substack is called how to fe...
+--------------------------------------------------------------------------------
+
+Classifying segments with threshold: 0.3
+
+Detected 9 sponsor segments:
+Segment 1: 1089.8s - 1111.7s (duration: 21.9s)
+Detected sponsor keywords in:
+  - 'of dopamine to indicate that it was worth paying attention to that bush of berries and that eating t...' (probability: 0.33)
+  - 'worth paying attention to that bush of berries and that eating the berries was a good idea to do and...' (probability: 0.33)
+  - 'berries and that eating the berries was a good idea to do and then you should do it again and that m...' (probability: 0.33)
+
+Segment 2: 2258.5s - 2279.0s (duration: 20.4s)
+Detected sponsor keywords in:
+  - 'that was my follow-up book to how to break up with your phone is called the power of fun um but the ...' (probability: 0.33)
+  - 'break up with your phone is called the power of fun um but the more of these real life embodied expe...' (probability: 0.33)
+  - 'power of fun um but the more of these real life embodied experiences that we're having ideally with ...' (probability: 0.33)
+
+Segment 3: 2430.6s - 2452.0s (duration: 21.4s)
+Detected sponsor keywords in:
+  - 'whoever like how they're paying attention to the phone instead of the other person and that their pa...' (probability: 0.33)
+  - 'attention to the phone instead of the other person and that their partner doesn't seem to get why th...' (probability: 0.33)
+  - 'other person and that their partner doesn't seem to get why this is such a big deal and I always say...' (probability: 0.33)
+
+Segment 4: 2496.0s - 2516.6s (duration: 20.6s)
+Detected sponsor keywords in:
+  - 'are and you're you're you should be listened to so that's one thing um we touched on sleep phones ar...' (probability: 0.33)
+  - 'listened to so that's one thing um we touched on sleep phones are having a huge impact on our sleep ...' (probability: 0.33)
+  - 'touched on sleep phones are having a huge impact on our sleep that's a big deal not only does it mak...' (probability: 0.33)
+
+Segment 5: 2641.6s - 2660.4s (duration: 18.7s)
+Detected sponsor keywords in:
+  - 'they randomly wandered into a store and picked something that they wanted themselves or is it becaus...' (probability: 0.67)
+  - 'picked something that they wanted themselves or is it because someone was recommended to them or the...' (probability: 0.67)
+  - 'themselves or is it because someone was recommended to them or they saw a photograph and a sponsored...' (probability: 0.67)
+
+Segment 6: 4167.8s - 4192.9s (duration: 25.0s)
+Detected sponsor keywords in:
+  - 'some really interesting stats around people that get bariatric surgery and out the other side of it ...' (probability: 0.33)
+  - 'people that get bariatric surgery and out the other side of it the suicide risk is really really hig...' (probability: 0.33)
+  - 'out the other side of it the suicide risk is really really high now bariatric surgery is a pretty bi...' (probability: 0.33)
+
+Segment 7: 4288.4s - 4311.3s (duration: 22.9s)
+Detected sponsor keywords in:
+  - 'that's one of the reasons I think yes you can because we're using them as drugs if you take away the...' (probability: 0.33)
+  - 'you can because we're using them as drugs if you take away the drug you're going to have withdrawal ...' (probability: 0.33)
+  - 'drugs if you take away the drug you're going to have withdrawal and you're also going to have to dea...' (probability: 0.33)
+
+Segment 8: 4340.9s - 4361.0s (duration: 20.1s)
+Detected sponsor keywords in:
+  - 'purpose you know you're mindless scrolling it's there for you're doing it for a reason and if you re...' (probability: 0.33)
+  - 'scrolling it's there for you're doing it for a reason and if you remove that you're going to uncover...' (probability: 0.33)
+  - 'for a reason and if you remove that you're going to uncover what that reason is and you do have to b...' (probability: 0.33)
+
+Segment 9: 4390.5s - 4410.2s (duration: 19.8s)
+Detected sponsor keywords in:
+  - 'you back on and we can talk about that but let's leave this one here bring it into land um people mi...' (probability: 0.33)
+  - 'but let's leave this one here bring it into land um people might want to sign up for the mailing lis...' (probability: 0.33)
+  - 'into land um people might want to sign up for the mailing list for the substack they want to check o...' (probability: 0.33)
+
