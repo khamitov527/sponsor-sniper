@@ -28,6 +28,7 @@ build/
 .env.production
 
 # Logs
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -39,4 +40,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python 
+.Python
+
+# Generated files
+*.json
+!package.json
+!package-lock.json
+!manifest.json 

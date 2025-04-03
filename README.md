@@ -58,7 +58,6 @@ Sponsor Sniper uses a machine learning approach to detect sponsor segments in Yo
 - `backend/`: Python backend with ML-based sponsor detection
   - `main.py`: Flask server with API endpoints
   - `sponsor_classifier.py`: ML classifier for sponsor detection
-  - `fine_tune.py`: Script for fine-tuning the ML model
 
 ## License
 

@@ -71,18 +71,23 @@ When the DeepSeek API is not available or fails, the system uses a keyword-based
 
 ## Testing
 
-You can test the DeepSeek integration with a specific YouTube video:
+You can test the DeepSeek integration with a specific YouTube video using:
 
 ```
-python test_deepseek.py VIDEO_ID [threshold]
+python test_deepseek.py VIDEO_ID [threshold] [include_transcript]
 ```
 
 For example:
 ```
-python test_deepseek.py dQw4w9WgXcQ 0.3
+python test_deepseek.py dQw4w9WgXcQ 0.3 1
 ```
+
+Arguments:
+- `VIDEO_ID`: YouTube video ID (required)
+- `threshold`: Detection threshold (default: 0.3)
+- `include_transcript`: Whether to include full transcript in log (1 or 0, default: 1)
 
 This will:
 1. Fetch the transcript for the specified video
 2. Process it using either DeepSeek API or the fallback mechanism
-3. Display the detected sponsor segments 
+3. Display the detected sponsor segments and save a detailed log file 

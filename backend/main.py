@@ -245,5 +245,40 @@ def get_transcript():
         }), 400
 
 if __name__ == "__main__":
-    logger.info("Starting Sponsor Sniper backend server")
-    app.run(host="0.0.0.0", port=8080, debug=True) 
+    import sys
+    
+    # Check for --test flag
+    if len(sys.argv) > 1 and sys.argv[1] == "--test":
+        logger.info("Running in test mode. Checking setup...")
+        try:
+            # Output setup info
+            deepseek_key = os.getenv('DEEPSEEK_API_KEY')
+            if deepseek_key:
+                logger.info("DeepSeek API key is configured.")
+            else:
+                logger.warning("No DeepSeek API key found. Will use fallback mechanism.")
+            
+            # Check if we can import all required modules
+            required_modules = ["flask", "flask_cors", "youtube_transcript_api"]
+            missing_modules = []
+            for module in required_modules:
+                try:
+                    __import__(module)
+                except ImportError:
+                    missing_modules.append(module)
+            
+            if missing_modules:
+                logger.error(f"Missing required modules: {', '.join(missing_modules)}")
+                logger.error("Please install with: pip install -r requirements.txt")
+                sys.exit(1)
+            else:
+                logger.info("All required modules are installed.")
+                logger.info("Setup looks good! You can start the server normally with: python main.py")
+                sys.exit(0)
+                
+        except Exception as e:
+            logger.error(f"Error during test: {e}")
+            sys.exit(1)
+    else:
+        logger.info("Starting Sponsor Sniper backend server")
+        app.run(host="0.0.0.0", port=8080, debug=True) 
