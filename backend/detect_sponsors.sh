@@ -1,15 +1,22 @@
 #!/bin/bash
 
 # Sponsor Sniper - Command line script for detecting sponsors in YouTube videos
-# Usage: ./detect_sponsors.sh <youtube_video_id> [threshold]
+# Usage: ./detect_sponsors.sh <youtube_video_id> [threshold] [include_transcript]
 
 # Default threshold
 THRESHOLD=0.3
 
+# Default include_transcript (1 = yes, 0 = no)
+INCLUDE_TRANSCRIPT=1
+
 # Check if video ID is provided
 if [ -z "$1" ]; then
     echo "Error: Please provide a YouTube video ID"
-    echo "Usage: ./detect_sponsors.sh <youtube_video_id> [threshold]"
+    echo "Usage: ./detect_sponsors.sh <youtube_video_id> [threshold] [include_transcript]"
+    echo "Arguments:"
+    echo "  youtube_video_id: The YouTube video ID"
+    echo "  threshold: Detection threshold (default: 0.3)"
+    echo "  include_transcript: Whether to include full transcript in log (1 or 0, default: 1)"
     exit 1
 fi
 
@@ -19,6 +26,11 @@ VIDEO_ID=$1
 # Set threshold if provided
 if [ ! -z "$2" ]; then
     THRESHOLD=$2
+fi
+
+# Set include_transcript if provided
+if [ ! -z "$3" ]; then
+    INCLUDE_TRANSCRIPT=$3
 fi
 
 # Create logs directory if it doesn't exist
@@ -50,10 +62,11 @@ fi
 
 # Make the request to the API
 echo "Detecting sponsors in video: $VIDEO_ID with threshold: $THRESHOLD"
+echo "Include full transcript: $([ "$INCLUDE_TRANSCRIPT" == "1" ] && echo "Yes" || echo "No")"
 echo "Please wait, this may take a moment as we analyze the video transcript..."
 
 # Make the API request
-RESPONSE=$(curl -s "http://localhost:8080/sponsors_log?v=$VIDEO_ID&threshold=$THRESHOLD")
+RESPONSE=$(curl -s "http://localhost:8080/sponsors_log?v=$VIDEO_ID&threshold=$THRESHOLD&include_transcript=$INCLUDE_TRANSCRIPT")
 
 # Extract log file path using proper JSON parsing
 # Use Python for reliable JSON parsing
@@ -66,6 +79,9 @@ if [ -n "$LOG_FILE" ] && [ -f "$LOG_FILE" ]; then
     echo "✅ Detection completed successfully!"
     echo "📊 Found $SPONSOR_COUNT sponsor segments"
     echo "📝 Log file created: $LOG_FILE"
+    if [ "$INCLUDE_TRANSCRIPT" == "1" ]; then
+        echo "📄 Full transcript included in log file"
+    fi
     echo "Do you want to view the log file now? (y/n)"
     read answer
     if [ "$answer" == "y" ] || [ "$answer" == "Y" ]; then

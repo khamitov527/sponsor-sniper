@@ -89,6 +89,7 @@ def get_sponsors_with_log():
     Query Parameters:
         v: YouTube video ID
         threshold: Optional - Probability threshold for classifying as sponsor (default: 0.3)
+        include_transcript: Optional - Whether to include full transcript in log (1 for yes, 0 for no, default: 1)
     """
     video_id = request.args.get('v')
     if not video_id:
@@ -103,6 +104,10 @@ def get_sponsors_with_log():
     except ValueError:
         threshold = 0.3
         logger.warning(f"Invalid threshold provided, using default: {threshold}")
+    
+    # Get include_transcript parameter (default to True)
+    include_transcript = request.args.get('include_transcript', '1') == '1'
+    logger.info(f"Include transcript in log: {include_transcript}")
     
     try:
         # Create a log file with timestamp
@@ -119,6 +124,25 @@ def get_sponsors_with_log():
             log_file.write("Fetching transcript...\n")
             transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
             log_file.write(f"Transcript length: {len(transcript_list)} segments\n\n")
+            
+            # Include full transcript if requested
+            if include_transcript:
+                log_file.write("== FULL TRANSCRIPT ==\n")
+                log_file.write("-" * 80 + "\n\n")
+                
+                # Sort transcript by start time
+                sorted_transcript = sorted(transcript_list, key=lambda x: x['start'])
+                
+                for i, segment in enumerate(sorted_transcript):
+                    start_time = segment['start']
+                    duration = segment['duration']
+                    end_time = start_time + duration
+                    text = segment['text']
+                    
+                    timestamp_str = f"[{start_time:.1f}s - {end_time:.1f}s]"
+                    log_file.write(f"{timestamp_str}: {text}\n")
+                
+                log_file.write("\n" + "-" * 80 + "\n\n")
             
             # Process transcript and get segments with probabilities
             processed_segments = classifier._preprocess_transcript(transcript_list)
@@ -170,12 +194,14 @@ def get_sponsors_with_log():
                 log_file.write("\n")
                 
         logger.info(f"Log file created: {log_filename}")
+        logger.info(f"Full transcript included in log: {include_transcript}")
         
         return jsonify({
             "video_id": video_id,
             "sponsors": sponsor_segments,
             "threshold": threshold,
             "log_file": log_filename,
+            "include_transcript": include_transcript,
             "success": True
         })
     except Exception as e:

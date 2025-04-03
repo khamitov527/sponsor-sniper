@@ -35,12 +35,12 @@ This tool allows you to detect sponsor segments in YouTube videos and save detai
 The easiest way to detect sponsors and generate logs is using the included shell script:
 
 ```
-./detect_sponsors.sh <youtube_video_id> [threshold]
+./detect_sponsors.sh <youtube_video_id> [threshold] [include_transcript]
 ```
 
 For example:
 ```
-./detect_sponsors.sh hCyvqRq5YmM 0.3
+./detect_sponsors.sh hCyvqRq5YmM 0.3 1
 ```
 
 The script will:
@@ -55,12 +55,12 @@ The script will:
 You can also use curl directly to call the API endpoint:
 
 ```
-curl "http://localhost:8080/sponsors_log?v=<youtube_video_id>&threshold=<threshold>"
+curl "http://localhost:8080/sponsors_log?v=<youtube_video_id>&threshold=<threshold>&include_transcript=<1|0>"
 ```
 
 For example:
 ```
-curl "http://localhost:8080/sponsors_log?v=hCyvqRq5YmM&threshold=0.3"
+curl "http://localhost:8080/sponsors_log?v=hCyvqRq5YmM&threshold=0.3&include_transcript=1"
 ```
 
 The response will include the path to the generated log file.
@@ -70,13 +70,18 @@ The response will include the path to the generated log file.
 For direct testing of the DeepSeek functionality (or the fallback mechanism):
 
 ```
-python3 test_deepseek.py <youtube_video_id> [threshold]
+python3 test_deepseek.py <youtube_video_id> [threshold] [include_transcript]
 ```
 
 For example:
 ```
-python3 test_deepseek.py hCyvqRq5YmM 0.3
+python3 test_deepseek.py hCyvqRq5YmM 0.3 1
 ```
+
+Arguments:
+- `VIDEO_ID`: YouTube video ID
+- `threshold`: Detection threshold (default: 0.3)
+- `include_transcript`: Whether to include full transcript in log (1 or 0, default: 1)
 
 ### Log File Format
 
@@ -87,9 +92,10 @@ sponsors_<video_id>_<timestamp>.txt
 
 Each log file contains:
 1. Basic information about the video and detection parameters
-2. List of segments with non-zero probability of being sponsors
-3. Detailed breakdown of detected sponsor segments
-4. Text snippets that triggered the detection
+2. Full transcript of the video (if `include_transcript=1`)
+3. List of segments with non-zero probability of being sponsors
+4. Detailed breakdown of detected sponsor segments
+5. Text snippets that triggered the detection
 
 ## Detection Methods
 
@@ -108,16 +114,25 @@ The detection threshold controls how sensitive the system is to potential sponso
 
 The default threshold is 0.3, which provides a good balance between detecting most sponsor segments while keeping false positives manageable.
 
+## Including or Excluding the Full Transcript
+
+By default, the full transcript is included in the log file for reference. This is helpful for:
+- Analyzing context around sponsor segments
+- Verifying the accuracy of the sponsor detection
+- Understanding the full content of the video
+
+If you're working with very long videos or want to save disk space, you can disable this by setting `include_transcript=0`.
+
 ## Example Commands
 
-Detect sponsors in a video with default threshold (0.3):
+Detect sponsors in a video with default threshold (0.3) and include transcript:
 ```
-./detect_sponsors.sh JHjhw8Ek3Zk
+./detect_sponsors.sh JHjhw8Ek3Zk 0.3 1
 ```
 
-Detect sponsors with custom threshold:
+Detect sponsors with custom threshold and without transcript:
 ```
-./detect_sponsors.sh hCyvqRq5YmM 0.5
+./detect_sponsors.sh hCyvqRq5YmM 0.5 0
 ```
 
 View a specific log file:

@@ -10,8 +10,15 @@ from dotenv import load_dotenv
 from sponsor_classifier import SponsorClassifier
 from youtube_transcript_api import YouTubeTranscriptApi
 
-def test_deepseek_detection(video_id, threshold=0.3, verbose=True):
-    """Test the DeepSeek API integration for sponsor detection in a specific video."""
+def test_deepseek_detection(video_id, threshold=0.3, verbose=True, include_full_transcript=True):
+    """Test the DeepSeek API integration for sponsor detection in a specific video.
+    
+    Args:
+        video_id: YouTube video ID
+        threshold: Probability threshold for classifying as sponsor
+        verbose: Whether to print detailed output to console
+        include_full_transcript: Whether to include the full transcript in the log file
+    """
     
     # Load environment variables (including DeepSeek API key)
     load_dotenv()
@@ -66,6 +73,25 @@ def test_deepseek_detection(video_id, threshold=0.3, verbose=True):
             # Log transcript info
             log_file.write("Fetching transcript...\n")
             log_file.write(f"Transcript length: {len(transcript_list)} segments\n\n")
+            
+            # Include full transcript if requested
+            if include_full_transcript:
+                log_file.write("== FULL TRANSCRIPT ==\n")
+                log_file.write("-" * 80 + "\n\n")
+                
+                # Sort transcript by start time
+                sorted_transcript = sorted(transcript_list, key=lambda x: x['start'])
+                
+                for i, segment in enumerate(sorted_transcript):
+                    start_time = segment['start']
+                    duration = segment['duration']
+                    end_time = start_time + duration
+                    text = segment['text']
+                    
+                    timestamp_str = f"[{start_time:.1f}s - {end_time:.1f}s]"
+                    log_file.write(f"{timestamp_str}: {text}\n")
+                
+                log_file.write("\n" + "-" * 80 + "\n\n")
             
             # Log segments with non-zero probability
             log_file.write("Segments with non-zero probability of being sponsors:\n")
@@ -127,6 +153,7 @@ def test_deepseek_detection(video_id, threshold=0.3, verbose=True):
             print("No sponsor segments detected.")
             
         print(f"\nLog file created: {log_filename}")
+        print(f"Full transcript included in log: {include_full_transcript}")
         return sponsor_segments
         
     except Exception as e:
@@ -138,12 +165,17 @@ if __name__ == "__main__":
     
     # Parse command line arguments
     if len(sys.argv) < 2:
-        print("Usage: python3 test_deepseek.py VIDEO_ID [threshold]")
-        print("Example: python3 test_deepseek.py dQw4w9WgXcQ 0.3")
+        print("Usage: python3 test_deepseek.py VIDEO_ID [threshold] [include_transcript]")
+        print("Example: python3 test_deepseek.py dQw4w9WgXcQ 0.3 1")
+        print("Arguments:")
+        print("  VIDEO_ID: YouTube video ID")
+        print("  threshold: Detection threshold (default: 0.3)")
+        print("  include_transcript: Whether to include full transcript in log (1 or 0, default: 1)")
         sys.exit(1)
         
     video_id = sys.argv[1]
     threshold = float(sys.argv[2]) if len(sys.argv) > 2 else 0.3
+    include_transcript = True if len(sys.argv) <= 3 or sys.argv[3] == "1" else False
     
     # Run the test
-    test_deepseek_detection(video_id, threshold) 
+    test_deepseek_detection(video_id, threshold, include_full_transcript=include_transcript) 
