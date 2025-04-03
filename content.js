@@ -6,19 +6,30 @@ console.log('Sponsor Sniper initialized');
 // Default settings
 let settings = {
   enableSkipping: true,
-  showNotifications: true
+  showNotifications: true,
+  debugMode: true  // Enable debug mode by default
 };
+
+// Store detected sponsor segments
+let currentVideoId = null;
+let sponsorSegments = [];
+let lastSkipTime = 0;
+let hasSetupSkipListener = false;
 
 // Load settings from storage
 function loadSettings() {
   chrome.storage.sync.get(
     {
       enableSkipping: true,
-      showNotifications: true
+      showNotifications: true,
+      debugMode: true  // Enable debug mode by default
     },
     function(items) {
       settings = items;
       console.log('Settings loaded:', settings);
+      if (settings.debugMode) {
+        createDebugOverlay();
+      }
     }
   );
 }
@@ -44,22 +55,107 @@ function getVideoId() {
 
 // Function to communicate with backend API to get sponsor segments
 async function getSponsorSegments(videoId) {
+  console.log(`Fetching sponsor segments for video: ${videoId}`);
+  
+  try {
+    // Method 1: Try using the background script to fetch segments
+    console.log('Requesting segments via background script');
+    return new Promise((resolve) => {
+      chrome.runtime.sendMessage({ type: 'fetchSponsorSegments', videoId: videoId }, response => {
+        console.log('Background script response:', response);
+        
+        if (response && response.success && response.data && response.data.sponsors) {
+          console.log(`Found ${response.data.sponsors.length} sponsor segments via background script`);
+          
+          // Process segments to ensure they have proper numerical values
+          const processedSegments = response.data.sponsors.map(segment => ({
+            startTime: parseFloat(segment.startTime),
+            endTime: parseFloat(segment.endTime),
+            duration: parseFloat(segment.endTime) - parseFloat(segment.startTime)
+          }));
+          
+          console.log('Processed segments:', processedSegments);
+          resolve(processedSegments);
+        } else {
+          console.error('Failed to get segments from background script, trying direct fetch');
+          // If background script fails, try direct fetch (Method 2)
+          fetchDirectly(videoId)
+            .then(segments => resolve(segments))
+            .catch(error => {
+              console.error('All fetch methods failed:', error);
+              resolve([]);
+            });
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error in getSponsorSegments:', error);
+    // Try the direct approach as fallback
+    return fetchDirectly(videoId);
+  }
+}
+
+// Helper function to fetch directly from the API
+async function fetchDirectly(videoId) {
+  console.log('Attempting direct fetch...');
   try {
     // Connect to our backend API to get sponsor segments
-    const response = await fetch(`http://localhost:8080/sponsors?v=${videoId}&threshold=0.3`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch sponsor segments');
-    }
-    const data = await response.json();
+    const url = `http://localhost:8080/sponsors?v=${videoId}&threshold=0.3`;
+    console.log(`Requesting: ${url}`);
     
-    // Check if the API call was successful
-    if (!data.success) {
-      throw new Error(data.error || 'API error occurred');
-    }
-    
-    return data.sponsors || [];
+    // Use XHR for more direct control
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.setRequestHeader('Accept', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            console.log('XHR success, response:', data);
+            
+            if (!data.success) {
+              console.error('API error:', data.error || 'Unknown error');
+              resolve([]);
+              return;
+            }
+            
+            if (!data.sponsors || !Array.isArray(data.sponsors) || data.sponsors.length === 0) {
+              console.log('No sponsor segments found via XHR');
+              resolve([]);
+              return;
+            }
+            
+            // Process segments
+            const processedSegments = data.sponsors.map(segment => ({
+              startTime: parseFloat(segment.startTime),
+              endTime: parseFloat(segment.endTime),
+              duration: parseFloat(segment.endTime) - parseFloat(segment.startTime)
+            }));
+            
+            console.log('XHR processed segments:', processedSegments);
+            resolve(processedSegments);
+          } catch (e) {
+            console.error('Error parsing XHR response:', e);
+            console.error('XHR raw response:', xhr.responseText);
+            resolve([]);
+          }
+        } else {
+          console.error('XHR error:', xhr.status, xhr.statusText);
+          resolve([]);
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('XHR network error');
+        resolve([]);
+      };
+      
+      xhr.send();
+    });
   } catch (error) {
-    console.error('Error fetching sponsor segments:', error);
+    console.error('Error in direct fetch:', error);
     return [];
   }
 }
@@ -85,6 +181,7 @@ function showSkipNotification() {
       font-family: Arial, sans-serif;
       font-size: 14px;
       transition: opacity 0.3s;
+      opacity: 0;
     `;
     document.body.appendChild(notification);
   }
@@ -99,48 +196,297 @@ function showSkipNotification() {
   }, 2000);
 }
 
-// Function to skip to a specific time in the video
+// Function to skip to a specific time in the video (improved version)
 function skipToTime(seconds) {
   const videoElement = document.querySelector('video');
-  if (videoElement) {
-    videoElement.currentTime = seconds;
-    console.log(`Skipped to ${seconds} seconds`);
-    showSkipNotification();
+  if (!videoElement) {
+    console.error('Video element not found for skipping');
+    return;
+  }
+  
+  // Don't skip if we've recently skipped (to prevent skipping loops)
+  const now = Date.now();
+  if (now - lastSkipTime < 1000) {
+    console.log('Skipping too frequent, ignoring');
+    return;
+  }
+  
+  lastSkipTime = now;
+  console.log(`Skipping to ${seconds} seconds`);
+  
+  // Method 1: Try direct currentTime setting
+  videoElement.currentTime = seconds;
+  
+  // Method 2: Try injecting a script to use YouTube's API (more reliable)
+  try {
+    // Create and inject a script to control the YouTube player
+    const script = document.createElement('script');
+    script.textContent = `
+      (function() {
+        try {
+          // Try to get the YouTube player instance
+          const player = document.querySelector('video');
+          if (player) {
+            // Force seek to specific time
+            player.currentTime = ${seconds};
+            
+            // Try to use YouTube's API if available
+            if (window.yt && window.yt.player && window.yt.player.getPlayerByElement) {
+              const ytPlayer = window.yt.player.getPlayerByElement(player);
+              if (ytPlayer && ytPlayer.seekTo) {
+                ytPlayer.seekTo(${seconds}, true);
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Error in injected skip script:', e);
+        }
+      })();
+    `;
+    document.body.appendChild(script);
+    script.remove(); // Clean up after execution
+  } catch (e) {
+    console.error('Error injecting skip script:', e);
+  }
+  
+  showSkipNotification();
+}
+
+// Debug overlay to visualize sponsor segments
+function createDebugOverlay() {
+  // Remove existing debug overlay if present
+  const existingOverlay = document.getElementById('sponsor-sniper-debug');
+  if (existingOverlay) {
+    existingOverlay.remove();
+  }
+  
+  // Create debug overlay
+  const debugOverlay = document.createElement('div');
+  debugOverlay.id = 'sponsor-sniper-debug';
+  debugOverlay.style.cssText = `
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 10px;
+    border-radius: 4px;
+    z-index: 9999;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    max-width: 300px;
+    max-height: 200px;
+    overflow-y: auto;
+  `;
+  
+  document.body.appendChild(debugOverlay);
+  updateDebugOverlay();
+}
+
+// Update debug overlay with current state
+function updateDebugOverlay() {
+  if (!settings.debugMode) return;
+  
+  const debugOverlay = document.getElementById('sponsor-sniper-debug');
+  if (!debugOverlay) return;
+  
+  const videoElement = document.querySelector('video');
+  const currentTime = videoElement ? videoElement.currentTime : 'N/A';
+  
+  let debugHtml = `
+    <div><strong>Sponsor Sniper Debug</strong></div>
+    <div>Video ID: ${currentVideoId || 'None'}</div>
+    <div>Current Time: ${currentTime !== 'N/A' ? currentTime.toFixed(1) + 's' : 'N/A'}</div>
+    <div>Skipping: ${settings.enableSkipping ? 'Enabled' : 'Disabled'}</div>
+    <div>Found: ${sponsorSegments.length} segments</div>
+    <div>Listener: ${hasSetupSkipListener ? 'Active' : 'Inactive'}</div>
+    <div><button id="sponsor-sniper-test-fetch" style="margin-top: 5px; font-size: 10px;">Test Fetch</button></div>
+  `;
+  
+  if (sponsorSegments.length > 0) {
+    debugHtml += '<div><strong>Sponsor Segments:</strong></div>';
+    sponsorSegments.forEach((segment, index) => {
+      const isActive = videoElement && 
+                       currentTime >= segment.startTime && 
+                       currentTime < segment.endTime;
+      
+      const style = isActive ? 'color: red; font-weight: bold;' : '';
+      
+      debugHtml += `
+        <div style="${style}">
+          ${index + 1}: ${segment.startTime.toFixed(1)}s - ${segment.endTime.toFixed(1)}s 
+          (${segment.duration.toFixed(1)}s)
+        </div>
+      `;
+    });
+  } else {
+    debugHtml += '<div style="color: yellow;">No segments detected</div>';
+  }
+  
+  debugOverlay.innerHTML = debugHtml;
+  
+  // Add event listener to the test fetch button
+  const testFetchButton = document.getElementById('sponsor-sniper-test-fetch');
+  if (testFetchButton) {
+    testFetchButton.addEventListener('click', () => {
+      if (!currentVideoId) {
+        alert('No video ID available');
+        return;
+      }
+      
+      // Test the backend directly with XHR and fetch
+      testDirectFetch(currentVideoId);
+    });
   }
 }
 
-// Function to monitor video playback and skip sponsor segments
-function monitorAndSkipSponsors(sponsorSegments) {
-  if (!sponsorSegments || sponsorSegments.length === 0) return;
+// Function to test direct fetch to backend
+function testDirectFetch(videoId) {
+  console.log('Testing direct fetch for video:', videoId);
+  
+  // Add a status message to the debug overlay
+  const debugOverlay = document.getElementById('sponsor-sniper-debug');
+  if (debugOverlay) {
+    const statusDiv = document.createElement('div');
+    statusDiv.style.color = 'yellow';
+    statusDiv.textContent = 'Fetching segments...';
+    debugOverlay.appendChild(statusDiv);
+    
+    // Update the status with fetch results
+    updateStatus = (message, color) => {
+      statusDiv.textContent = message;
+      statusDiv.style.color = color || 'white';
+    };
+  }
+  
+  // Try XHR first
+  const xhr = new XMLHttpRequest();
+  xhr.open('GET', `http://localhost:8080/sponsors?v=${videoId}&threshold=0.3`, true);
+  xhr.setRequestHeader('Accept', 'application/json');
+  
+  xhr.onload = function() {
+    console.log('XHR response:', xhr.status, xhr.responseText);
+    
+    if (xhr.status >= 200 && xhr.status < 300) {
+      try {
+        const data = JSON.parse(xhr.responseText);
+        console.log('XHR success, parsed data:', data);
+        
+        if (data.success && data.sponsors && data.sponsors.length > 0) {
+          // Process segments
+          sponsorSegments = data.sponsors.map(segment => ({
+            startTime: parseFloat(segment.startTime),
+            endTime: parseFloat(segment.endTime),
+            duration: parseFloat(segment.endTime) - parseFloat(segment.startTime)
+          }));
+          
+          // Update the overlay and listener
+          updateDebugOverlay();
+          if (!hasSetupSkipListener) {
+            setupSkipListener();
+          }
+          
+          if (updateStatus) {
+            updateStatus(`Loaded ${sponsorSegments.length} segments via XHR`, 'green');
+          }
+        } else {
+          console.log('No segments found in XHR response');
+          if (updateStatus) {
+            updateStatus('No segments found in response', 'red');
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing XHR response:', e);
+        if (updateStatus) {
+          updateStatus('Error parsing response', 'red');
+        }
+      }
+    } else {
+      console.error('XHR error:', xhr.status, xhr.statusText);
+      if (updateStatus) {
+        updateStatus(`XHR error: ${xhr.status}`, 'red');
+      }
+    }
+  };
+  
+  xhr.onerror = function() {
+    console.error('XHR network error');
+    if (updateStatus) {
+      updateStatus('Network error', 'red');
+    }
+  };
+  
+  xhr.send();
+}
+
+// Function to check if the current time is within a sponsor segment and skip it
+function checkAndSkipSponsors() {
+  if (!settings.enableSkipping || sponsorSegments.length === 0) return;
   
   const videoElement = document.querySelector('video');
   if (!videoElement) return;
   
-  // Listen for time updates on the video element
-  videoElement.addEventListener('timeupdate', () => {
-    // Check if skipping is enabled in settings
-    if (!settings.enableSkipping) return;
-    
-    const currentTime = videoElement.currentTime;
-    
-    // Check if current time is within any sponsor segment
-    for (const segment of sponsorSegments) {
-      if (currentTime >= segment.startTime && currentTime < segment.endTime) {
-        // Skip to the end of the sponsor segment
-        skipToTime(segment.endTime);
-        break;
-      }
+  const currentTime = videoElement.currentTime;
+  
+  // Update debug overlay with current state
+  if (settings.debugMode) {
+    updateDebugOverlay();
+  }
+  
+  // Check if current time is within any sponsor segment
+  for (const segment of sponsorSegments) {
+    if (currentTime >= segment.startTime && currentTime < segment.endTime) {
+      console.log(`Detected sponsor segment at ${currentTime}s (${segment.startTime}s - ${segment.endTime}s)`);
+      // Skip to the end of the sponsor segment
+      skipToTime(segment.endTime);
+      break;
     }
-  });
+  }
+}
+
+// Function to set up listener for video time updates
+function setupSkipListener() {
+  if (hasSetupSkipListener) return;
+  
+  const videoElement = document.querySelector('video');
+  if (!videoElement) {
+    console.error('Video element not found for setting up listener');
+    return;
+  }
+  
+  console.log('Setting up time update listener');
+  
+  // Use an interval instead of timeupdate event for more reliable checking
+  const checkInterval = setInterval(() => {
+    if (!document.querySelector('video')) {
+      console.log('Video element removed, clearing interval');
+      clearInterval(checkInterval);
+      hasSetupSkipListener = false;
+      return;
+    }
+    
+    checkAndSkipSponsors();
+  }, 500);
+  
+  hasSetupSkipListener = true;
+  console.log('Sponsor segment monitoring active');
 }
 
 // Main initialization function
 async function initialize() {
+  console.log('Initializing Sponsor Sniper');
+  
+  // Immediately test the backend connection
+  testBackendConnection();
+  
   // Load settings first
   loadSettings();
   
   // Only run on YouTube watch pages
-  if (!isYouTubeWatchPage()) return;
+  if (!isYouTubeWatchPage()) {
+    console.log('Not a YouTube watch page, exiting');
+    return;
+  }
   
   // Get the video ID
   const videoId = getVideoId();
@@ -149,31 +495,93 @@ async function initialize() {
     return;
   }
   
+  // Skip if this is the same video we've already processed
+  if (videoId === currentVideoId && sponsorSegments.length > 0) {
+    console.log('Already processed this video, reusing existing segments');
+    setupSkipListener();
+    return;
+  }
+  
   console.log(`Processing YouTube video: ${videoId}`);
+  currentVideoId = videoId;
+  
+  // Fetch sponsor segments from the backend
+  sponsorSegments = await getSponsorSegments(videoId);
   
   // Wait for the video element to be ready
+  waitForVideoElement();
+}
+
+// Test connection to backend server
+function testBackendConnection() {
+  console.log('Testing backend connection...');
+  
+  // Try using the background script first
+  chrome.runtime.sendMessage({ type: 'pingBackend' }, response => {
+    console.log('Backend ping response (via background):', response);
+    
+    if (response && response.success) {
+      console.log('Backend connection successful via background script');
+    } else {
+      // If background fails, try direct connection
+      console.log('Background ping failed, trying direct ping');
+      
+      // Use XHR for a more direct approach
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'http://localhost:8080/ping', true);
+      
+      xhr.onload = function() {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          console.log('Direct ping successful:', xhr.responseText);
+        } else {
+          console.error('Direct ping failed:', xhr.status, xhr.statusText);
+        }
+      };
+      
+      xhr.onerror = function() {
+        console.error('XHR network error during ping');
+      };
+      
+      xhr.send();
+    }
+  });
+  
+  // Also try a simple fetch as another test
+  fetch('http://localhost:8080/ping')
+    .then(response => {
+      console.log('Fetch ping response status:', response.status);
+      return response.json();
+    })
+    .then(data => {
+      console.log('Fetch ping data:', data);
+    })
+    .catch(error => {
+      console.error('Fetch ping error:', error);
+    });
+}
+
+// Function to wait for the video element
+function waitForVideoElement() {
   let attempts = 0;
-  const checkVideoElement = setInterval(async () => {
+  const checkVideoElement = setInterval(() => {
     const videoElement = document.querySelector('video');
     attempts++;
     
     if (videoElement) {
       clearInterval(checkVideoElement);
-      
-      // Fetch sponsor segments from the backend
-      const sponsorSegments = await getSponsorSegments(videoId);
-      
-      // Start monitoring and skipping sponsors
-      monitorAndSkipSponsors(sponsorSegments);
-    } else if (attempts >= 10) {
-      // Give up after 10 attempts (5 seconds)
+      console.log('Video element found, setting up listener');
+      setupSkipListener();
+    } else if (attempts >= 30) { // 15 seconds max
       clearInterval(checkVideoElement);
       console.error('Video element not found after multiple attempts');
+    } else {
+      console.log(`Waiting for video element (attempt ${attempts})`);
     }
   }, 500);
 }
 
 // Run the extension on page load
+console.log('Starting Sponsor Sniper');
 initialize();
 
 // Re-run the extension when navigating between YouTube videos (SPA navigation)
@@ -182,6 +590,7 @@ const urlChangeDetector = setInterval(() => {
   if (window.location.href !== previousUrl) {
     previousUrl = window.location.href;
     console.log('URL changed, reinitializing Sponsor Sniper');
+    hasSetupSkipListener = false; // Reset listener state
     initialize();
   }
 }, 1000); 

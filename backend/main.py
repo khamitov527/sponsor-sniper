@@ -1,14 +1,25 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from youtube_transcript_api import YouTubeTranscriptApi
-from sponsor_classifier import SponsorClassifier
 import logging
 import json
 import os
+import sys
 from datetime import datetime
+from functools import wraps
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Enable CORS with more permissive configuration for Chrome extensions
+CORS(app, origins=["*"], allow_headers=["*"], supports_credentials=True)
+
+# Add CORS headers to all responses
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS'
+    response.headers['Access-Control-Allow-Credentials'] = 'true'
+    return response
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, 
@@ -18,8 +29,14 @@ logger = logging.getLogger(__name__)
 # Create logs directory if it doesn't exist
 os.makedirs('logs', exist_ok=True)
 
-# Initialize the sponsor classifier
-classifier = SponsorClassifier()
+# Check for sponsor_classifier.py and import appropriately
+try:
+    from sponsor_classifier import SponsorClassifier
+    classifier = SponsorClassifier()
+    logger.info("Sponsor classifier loaded successfully")
+except ImportError:
+    logger.error("Failed to import SponsorClassifier, some endpoints may not work")
+    classifier = None
 
 @app.route('/ping', methods=['GET'])
 def health_check():
@@ -36,20 +53,30 @@ def get_sponsors():
         threshold: Optional - Probability threshold for classifying as sponsor (default: 0.7)
     """
     video_id = request.args.get('v')
-    if not video_id:
-        return jsonify({"detail": "Video ID (v) is required"}), 400
     
-    # Get threshold parameter (default to 0.7 if not provided)
+    # Log request details
+    logger.info(f"Sponsor detection request received. URL: {request.url}")
+    logger.info(f"Client IP: {request.remote_addr}, User Agent: {request.headers.get('User-Agent', 'Unknown')}")
+    
+    if not video_id:
+        logger.error("No video ID provided in request")
+        return jsonify({"detail": "Video ID (v) is required", "success": False}), 400
+    
+    # Get threshold parameter (default to 0.3 if not provided)
     try:
-        threshold = float(request.args.get('threshold', 0.7))
+        threshold = float(request.args.get('threshold', 0.3))
         # Ensure threshold is between 0 and 1
         threshold = max(0.0, min(1.0, threshold))
         logger.info(f"Using threshold: {threshold}")
-    except ValueError:
-        threshold = 0.7
-        logger.warning(f"Invalid threshold provided, using default: {threshold}")
+    except ValueError as e:
+        threshold = 0.3
+        logger.warning(f"Invalid threshold provided ({request.args.get('threshold')}), using default: {threshold}. Error: {str(e)}")
     
     try:
+        # Check if classifier is available
+        if not classifier:
+            raise Exception("Sponsor classifier not available")
+        
         # Fetch transcript for the video
         logger.info(f"Fetching transcript for video: {video_id}")
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
@@ -66,14 +93,19 @@ def get_sponsors():
             end = segment["endTime"]
             logger.info(f"Segment {i+1}: {start:.1f}s - {end:.1f}s (duration: {end-start:.1f}s)")
         
-        return jsonify({
+        # Create response
+        response = {
             "video_id": video_id,
             "sponsors": sponsor_segments,
             "threshold": threshold,
             "success": True
-        })
+        }
+        
+        logger.info(f"Returning response with {len(sponsor_segments)} segments")
+        return jsonify(response)
+        
     except Exception as e:
-        logger.error(f"Error processing video {video_id}: {str(e)}")
+        logger.error(f"Error processing video {video_id}: {str(e)}", exc_info=True)
         return jsonify({
             "video_id": video_id,
             "error": str(e),

@@ -75,6 +75,15 @@
       color: #666;
       margin-top: 15px;
     }
+    .status {
+      font-size: 12px;
+      color: #2196F3;
+      margin-top: 5px;
+      padding: 5px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
   </style>
 </head>
 <body>
@@ -97,6 +106,18 @@
         <input type="checkbox" id="show-notifications" checked>
         <span class="slider"></span>
       </label>
+    </div>
+    
+    <div class="toggle">
+      <span>Debug mode (show overlay)</span>
+      <label class="switch">
+        <input type="checkbox" id="debug-mode" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    
+    <div class="status" id="connection-status">
+      Checking backend connection...
     </div>
     
     <div class="footer">
