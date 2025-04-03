@@ -71,23 +71,39 @@ When the DeepSeek API is not available or fails, the system uses a keyword-based
 
 ## Testing
 
-You can test the DeepSeek integration with a specific YouTube video using:
+To test the DeepSeek integration with a specific YouTube video, follow these steps:
 
-```
-python test_deepseek.py VIDEO_ID [threshold] [include_transcript]
+1. Set up a Python virtual environment and install dependencies:
+```bash
+# Create a virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate  # On Unix/macOS
+# or
+.\venv\Scripts\activate  # On Windows
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-For example:
+2. Run the test script:
+```bash
+python3 test_deepseek.py VIDEO_ID [threshold] [include_transcript]
 ```
-python test_deepseek.py dQw4w9WgXcQ 0.3 1
+
+Example:
+```bash
+python3 test_deepseek.py hCyvqRq5YmM 0.3 1
 ```
 
 Arguments:
-- `VIDEO_ID`: YouTube video ID (required)
-- `threshold`: Detection threshold (default: 0.3)
-- `include_transcript`: Whether to include full transcript in log (1 or 0, default: 1)
+- `VIDEO_ID`: The YouTube video ID (e.g., 'hCyvqRq5YmM' from 'https://www.youtube.com/watch?v=hCyvqRq5YmM')
+- `threshold`: (Optional) Confidence threshold for sponsor detection (default: 0.3)
+- `include_transcript`: (Optional) Include full transcript in log file (1 for yes, 0 for no, default: 0)
 
-This will:
-1. Fetch the transcript for the specified video
-2. Process it using either DeepSeek API or the fallback mechanism
-3. Display the detected sponsor segments and save a detailed log file 
+The script will:
+1. Fetch the video transcript
+2. Process it for sponsor detection
+3. Display detected sponsor segments
+4. Save a detailed log file in the `logs` directory 
