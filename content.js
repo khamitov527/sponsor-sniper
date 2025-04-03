@@ -161,7 +161,7 @@ async function fetchDirectly(videoId) {
 }
 
 // Function to show notification when skipping a sponsor
-function showSkipNotification() {
+function showSkipNotification(skipStartTime, skipEndTime) {
   if (!settings.showNotifications) return;
   
   // Create or get notification element
@@ -186,18 +186,36 @@ function showSkipNotification() {
     document.body.appendChild(notification);
   }
   
+  // Format the skip duration for display (round to 1 decimal place)
+  const durationSecs = skipEndTime - skipStartTime;
+  const durationText = durationSecs >= 60 
+    ? `${Math.floor(durationSecs / 60)}m ${Math.round(durationSecs % 60)}s` 
+    : `${durationSecs.toFixed(1)}s`;
+  
+  // Format the timestamp for display
+  const formatTimestamp = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.round(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
   // Set notification text and show it
-  notification.textContent = 'Sponsor skipped';
+  notification.innerHTML = `
+    <div>Sponsor skipped</div>
+    <div style="font-size: 12px; opacity: 0.9; margin-top: 3px;">
+      ${formatTimestamp(skipStartTime)} - ${formatTimestamp(skipEndTime)} (${durationText})
+    </div>
+  `;
   notification.style.opacity = '1';
   
-  // Hide notification after 2 seconds
+  // Hide notification after 3 seconds
   setTimeout(() => {
     notification.style.opacity = '0';
-  }, 2000);
+  }, 3000);
 }
 
 // Function to skip to a specific time in the video (improved version)
-function skipToTime(seconds) {
+function skipToTime(seconds, startTime) {
   const videoElement = document.querySelector('video');
   if (!videoElement) {
     console.error('Video element not found for skipping');
@@ -212,7 +230,7 @@ function skipToTime(seconds) {
   }
   
   lastSkipTime = now;
-  console.log(`Skipping to ${seconds} seconds`);
+  console.log(`Skipping from ${startTime}s to ${seconds}s`);
   
   // Method 1: Try direct currentTime setting
   videoElement.currentTime = seconds;
@@ -249,7 +267,7 @@ function skipToTime(seconds) {
     console.error('Error injecting skip script:', e);
   }
   
-  showSkipNotification();
+  showSkipNotification(startTime, seconds);
 }
 
 // Debug overlay to visualize sponsor segments
@@ -293,35 +311,88 @@ function updateDebugOverlay() {
   const videoElement = document.querySelector('video');
   const currentTime = videoElement ? videoElement.currentTime : 'N/A';
   
+  // Format time values for display
+  const formatTime = (seconds) => {
+    if (seconds === 'N/A') return 'N/A';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+  
+  // Basic info section
   let debugHtml = `
-    <div><strong>Sponsor Sniper Debug</strong></div>
-    <div>Video ID: ${currentVideoId || 'None'}</div>
-    <div>Current Time: ${currentTime !== 'N/A' ? currentTime.toFixed(1) + 's' : 'N/A'}</div>
-    <div>Skipping: ${settings.enableSkipping ? 'Enabled' : 'Disabled'}</div>
-    <div>Found: ${sponsorSegments.length} segments</div>
-    <div>Listener: ${hasSetupSkipListener ? 'Active' : 'Inactive'}</div>
-    <div><button id="sponsor-sniper-test-fetch" style="margin-top: 5px; font-size: 10px;">Test Fetch</button></div>
+    <div style="border-bottom: 1px solid #444; padding-bottom: 5px; margin-bottom: 5px;">
+      <strong>Sponsor Sniper</strong>
+      <span style="float: right; font-size: 10px;">${currentVideoId || 'No Video'}</span>
+    </div>
+    <div>Time: <strong>${formatTime(currentTime)}</strong> (${currentTime !== 'N/A' ? currentTime.toFixed(1) + 's' : 'N/A'})</div>
+    <div>Status: ${hasSetupSkipListener ? 
+      '<span style="color: #4CAF50;">Active</span>' : 
+      '<span style="color: #F44336;">Inactive</span>'}</div>
+    <div>Auto-Skip: ${settings.enableSkipping ? 
+      '<span style="color: #4CAF50;">Enabled</span>' : 
+      '<span style="color: #F44336;">Disabled</span>'}</div>
+    <div>Detected: <strong>${sponsorSegments.length}</strong> segment${sponsorSegments.length !== 1 ? 's' : ''}</div>
   `;
   
+  // Add segments section if we have any
   if (sponsorSegments.length > 0) {
-    debugHtml += '<div><strong>Sponsor Segments:</strong></div>';
+    debugHtml += `
+      <div style="border-top: 1px solid #444; margin-top: 5px; padding-top: 5px;">
+        <strong>Sponsor Segments:</strong>
+      </div>
+    `;
+    
     sponsorSegments.forEach((segment, index) => {
       const isActive = videoElement && 
                        currentTime >= segment.startTime && 
                        currentTime < segment.endTime;
       
-      const style = isActive ? 'color: red; font-weight: bold;' : '';
+      // Format duration
+      const duration = segment.endTime - segment.startTime;
+      const durationText = duration >= 60 
+        ? `${Math.floor(duration / 60)}m ${Math.round(duration % 60)}s` 
+        : `${duration.toFixed(1)}s`;
+      
+      // Calculate progress through segment (if currently in one)
+      let progressBar = '';
+      if (isActive) {
+        const progress = (currentTime - segment.startTime) / (segment.endTime - segment.startTime);
+        const progressPercent = Math.min(100, Math.max(0, progress * 100));
+        
+        progressBar = `
+          <div style="height: 4px; background: #333; margin-top: 3px; border-radius: 2px; overflow: hidden;">
+            <div style="width: ${progressPercent}%; height: 100%; background: #F44336;"></div>
+          </div>
+        `;
+      }
+      
+      const style = isActive 
+        ? 'background: rgba(255, 0, 0, 0.2); border-left: 3px solid #F44336; padding-left: 5px;' 
+        : '';
       
       debugHtml += `
-        <div style="${style}">
-          ${index + 1}: ${segment.startTime.toFixed(1)}s - ${segment.endTime.toFixed(1)}s 
-          (${segment.duration.toFixed(1)}s)
+        <div style="${style} margin: 3px 0; padding: 2px 0;">
+          <span style="color: ${isActive ? '#F44336' : '#FFC107'};">
+            ${index + 1}: ${formatTime(segment.startTime)} - ${formatTime(segment.endTime)}
+          </span>
+          <span style="float: right; font-size: 11px; color: #AAA;">${durationText}</span>
+          ${progressBar}
         </div>
       `;
     });
   } else {
-    debugHtml += '<div style="color: yellow;">No segments detected</div>';
+    debugHtml += '<div style="color: #FFC107; margin-top: 5px;">No sponsor segments detected</div>';
   }
+  
+  // Add test button at bottom
+  debugHtml += `
+    <div style="margin-top: 10px; text-align: center;">
+      <button id="sponsor-sniper-test-fetch" style="background: #444; color: white; border: none; padding: 3px 8px; border-radius: 3px; cursor: pointer; font-size: 10px;">
+        Test Fetch
+      </button>
+    </div>
+  `;
   
   debugOverlay.innerHTML = debugHtml;
   
@@ -329,13 +400,17 @@ function updateDebugOverlay() {
   const testFetchButton = document.getElementById('sponsor-sniper-test-fetch');
   if (testFetchButton) {
     testFetchButton.addEventListener('click', () => {
-      if (!currentVideoId) {
-        alert('No video ID available');
-        return;
+      console.log('Test fetch button clicked');
+      if (currentVideoId) {
+        testDirectFetch(currentVideoId);
+      } else {
+        const videoId = getVideoId();
+        if (videoId) {
+          testDirectFetch(videoId);
+        } else {
+          console.error('No video ID found for test fetch');
+        }
       }
-      
-      // Test the backend directly with XHR and fetch
-      testDirectFetch(currentVideoId);
     });
   }
 }
@@ -438,7 +513,7 @@ function checkAndSkipSponsors() {
     if (currentTime >= segment.startTime && currentTime < segment.endTime) {
       console.log(`Detected sponsor segment at ${currentTime}s (${segment.startTime}s - ${segment.endTime}s)`);
       // Skip to the end of the sponsor segment
-      skipToTime(segment.endTime);
+      skipToTime(segment.endTime, segment.startTime);
       break;
     }
   }

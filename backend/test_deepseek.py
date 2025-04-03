@@ -9,6 +9,7 @@ import datetime
 from dotenv import load_dotenv
 from sponsor_classifier import SponsorClassifier
 from youtube_transcript_api import YouTubeTranscriptApi
+import argparse
 
 def test_deepseek_detection(video_id, threshold=0.3, verbose=True, include_full_transcript=True):
     """Test the DeepSeek API integration for sponsor detection in a specific video.
@@ -163,19 +164,19 @@ def test_deepseek_detection(video_id, threshold=0.3, verbose=True, include_full_
 if __name__ == "__main__":
     import sys
     
-    # Parse command line arguments
-    if len(sys.argv) < 2:
-        print("Usage: python3 test_deepseek.py VIDEO_ID [threshold] [include_transcript]")
-        print("Example: python3 test_deepseek.py dQw4w9WgXcQ 0.3 1")
-        print("Arguments:")
-        print("  VIDEO_ID: YouTube video ID")
-        print("  threshold: Detection threshold (default: 0.3)")
-        print("  include_transcript: Whether to include full transcript in log (1 or 0, default: 1)")
-        sys.exit(1)
-        
-    video_id = sys.argv[1]
-    threshold = float(sys.argv[2]) if len(sys.argv) > 2 else 0.3
-    include_transcript = True if len(sys.argv) <= 3 or sys.argv[3] == "1" else False
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description="Test sponsor detection in YouTube videos")
+    parser.add_argument("--video_id", required=True, help="YouTube video ID")
+    parser.add_argument("--threshold", type=float, default=0.3, help="Detection threshold (default: 0.3)")
+    parser.add_argument("--include_transcript", type=int, default=1, choices=[0, 1], 
+                        help="Whether to include full transcript in log (1 or 0, default: 1)")
+    
+    args = parser.parse_args()
+    
+    # Extract arguments
+    video_id = args.video_id
+    threshold = args.threshold
+    include_transcript = args.include_transcript == 1
     
     # Run the test
     test_deepseek_detection(video_id, threshold, include_full_transcript=include_transcript) 
