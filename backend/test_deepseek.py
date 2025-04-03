@@ -19,20 +19,16 @@ def test_deepseek_detection(video_id, threshold=0.3, verbose=True):
     # Check if DeepSeek API key is set
     api_key = os.getenv('DEEPSEEK_API_KEY')
     if not api_key:
-        print("ERROR: DeepSeek API key not found in .env file")
-        print("Please set up your API key by copying .env.example to .env and adding your key")
-        return
+        print("WARNING: DeepSeek API key not found in .env file")
+        print("The system will fall back to heuristic classification.")
+    else:
+        print(f"DeepSeek API key found. Will use DeepSeek API for classification.")
     
     try:
-        print(f"Testing DeepSeek API sponsor detection for video: {video_id}")
+        print(f"Testing sponsor detection for video: {video_id}")
         
         # Initialize the classifier
         classifier = SponsorClassifier()
-        
-        # Make sure we're using DeepSeek
-        if not classifier.use_deepseek:
-            print("ERROR: DeepSeek API integration is not available")
-            return
             
         # Get the transcript
         print(f"Fetching transcript for video: {video_id}")
@@ -50,8 +46,8 @@ def test_deepseek_detection(video_id, threshold=0.3, verbose=True):
         else:
             test_segments = processed_segments
         
-        # Call DeepSeek API for classification
-        print("Calling DeepSeek API for classification...")
+        # Call DeepSeek API or fallback classification
+        print("Calling classification...")
         segment_results = classifier._deepseek_classification(test_segments)
         
         # Create a log file with timestamp
@@ -142,8 +138,8 @@ if __name__ == "__main__":
     
     # Parse command line arguments
     if len(sys.argv) < 2:
-        print("Usage: python test_deepseek.py VIDEO_ID [threshold]")
-        print("Example: python test_deepseek.py dQw4w9WgXcQ 0.3")
+        print("Usage: python3 test_deepseek.py VIDEO_ID [threshold]")
+        print("Example: python3 test_deepseek.py dQw4w9WgXcQ 0.3")
         sys.exit(1)
         
     video_id = sys.argv[1]

@@ -7,6 +7,7 @@ This tool allows you to detect sponsor segments in YouTube videos and save detai
 - Python 3.6+
 - Virtual environment with required packages installed (see `requirements.txt`)
 - YouTube video ID
+- DeepSeek API key (optional, will use fallback mechanism if not provided)
 
 ## Setup
 
@@ -16,7 +17,13 @@ This tool allows you to detect sponsor segments in YouTube videos and save detai
    pip install -r requirements.txt
    ```
 
-2. Start the backend server:
+2. Configure DeepSeek API (recommended for best results):
+   ```
+   cp .env.example .env
+   # Edit .env file to add your DeepSeek API key
+   ```
+
+3. Start the backend server:
    ```
    python main.py
    ```
@@ -58,6 +65,19 @@ curl "http://localhost:8080/sponsors_log?v=hCyvqRq5YmM&threshold=0.3"
 
 The response will include the path to the generated log file.
 
+### Option 3: Using the test_deepseek.py script
+
+For direct testing of the DeepSeek functionality (or the fallback mechanism):
+
+```
+python3 test_deepseek.py <youtube_video_id> [threshold]
+```
+
+For example:
+```
+python3 test_deepseek.py hCyvqRq5YmM 0.3
+```
+
 ### Log File Format
 
 The log files are stored in the `logs` directory with filenames in the format:
@@ -70,6 +90,14 @@ Each log file contains:
 2. List of segments with non-zero probability of being sponsors
 3. Detailed breakdown of detected sponsor segments
 4. Text snippets that triggered the detection
+
+## Detection Methods
+
+The system uses two approaches for sponsor detection:
+
+1. **DeepSeek API (Primary)**: Uses DeepSeek's advanced language model for highly accurate sponsor detection. Requires a valid API key.
+
+2. **Keyword-based Heuristics (Fallback)**: If the DeepSeek API is unavailable or fails, the system falls back to a keyword-based approach that looks for common sponsor-related phrases like "sponsor," "promo code," etc.
 
 ## Adjusting the Detection Threshold
 
@@ -97,15 +125,11 @@ View a specific log file:
 cat logs/sponsors_hCyvqRq5YmM_20250402_191210.txt
 ```
 
-## Improvements
-
-The script now uses Python's JSON parsing for reliable extraction of the log file path from the API response. A fallback mechanism is also in place to find the most recent log file for the specified video ID if the path cannot be extracted from the response.
-
-### Testing Results
+## Testing Results
 
 The tool has been tested with various YouTube videos:
 
-1. **Video ID: hCyvqRq5YmM** - 17 sponsor segments detected
+1. **Video ID: hCyvqRq5YmM** - 15 sponsor segments detected
 2. **Video ID: JHjhw8Ek3Zk** - 9 sponsor segments detected
 3. **Video ID: dQw4w9WgXcQ** - 0 sponsor segments detected (no sponsors found)
 

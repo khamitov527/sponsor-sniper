@@ -1,6 +1,6 @@
 # Using DeepSeek API for Sponsor Detection
 
-This guide explains how to set up and use the DeepSeek API integration for more accurate sponsor detection in YouTube videos.
+This guide explains how to set up and use the DeepSeek API integration for accurate sponsor detection in YouTube videos.
 
 ## What is DeepSeek?
 
@@ -31,22 +31,27 @@ DeepSeek provides powerful language models that can understand and analyze text.
 You can test the DeepSeek integration with a specific YouTube video:
 
 ```
-python test_deepseek.py VIDEO_ID [threshold]
+python3 test_deepseek.py VIDEO_ID [threshold]
 ```
 
 For example:
 ```
-python test_deepseek.py dQw4w9WgXcQ 0.3
+python3 test_deepseek.py dQw4w9WgXcQ 0.3
 ```
 
 This will:
 1. Fetch the transcript for the specified video
-2. Send the transcript to DeepSeek for analysis
+2. Send the transcript to DeepSeek for analysis (or use the fallback mechanism if no API key is available)
 3. Display the detected sponsor segments
 
 ## Fallback Mechanism
 
-If the DeepSeek API is not available (for example, if the API key is not configured or if the API call fails), the system will automatically fall back to the heuristic approach.
+If the DeepSeek API is not available (for example, if the API key is not configured or if the API call fails), the system will automatically fall back to a keyword-based heuristic approach. This ensures the system continues to work even without DeepSeek API access.
+
+The fallback mechanism:
+1. Looks for sponsor-related keywords in the transcript
+2. Calculates probability based on keyword density
+3. Classifies segments with probability above threshold as sponsors
 
 ## Using the API Endpoint
 
@@ -54,6 +59,12 @@ The regular API endpoint `/sponsors` will automatically use DeepSeek if it's con
 
 ```
 GET /sponsors?v=VIDEO_ID&threshold=0.3
+```
+
+For more detailed analysis with logs:
+
+```
+GET /sponsors_log?v=VIDEO_ID&threshold=0.3
 ```
 
 ## Troubleshooting

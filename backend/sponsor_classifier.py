@@ -1,43 +1,28 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
-import numpy as np
-from typing import List, Dict, Any, Tuple
 import os
 import requests
 import json
+from typing import List, Dict, Any, Tuple
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
 class SponsorClassifier:
-    def __init__(self, model_name: str = "distilbert-base-uncased"):
+    def __init__(self):
         """
         Initialize the sponsor classifier.
-        
-        Args:
-            model_name: Name of the pretrained model to use from Hugging Face.
         """
         # Get DeepSeek API key from environment variables
         self.deepseek_api_key = os.getenv('DEEPSEEK_API_KEY')
         self.deepseek_api_url = "https://api.deepseek.com/v1/chat/completions"
         
-        # If no DeepSeek API key is available, fall back to ML methods
+        # If no DeepSeek API key is available, fall back to heuristic methods
         self.use_deepseek = self.deepseek_api_key is not None
         
         if not self.use_deepseek:
             print("WARNING: No DeepSeek API key found. Falling back to heuristic classification.")
-            # ML model initialization (commented out but kept for fallback)
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
-            self.model.to(self.device)
-            
-            # Set model to evaluation mode
-            self.model.eval()
         
-        # If no fine-tuned model is available, we'll use a simple heuristic approach
-        # as a fallback until the model is properly trained
+        # Keyword list for heuristic fallback approach
         self.sponsor_keywords = [
             "sponsor", "sponsored", "sponsorship", "promotion", "promo code", 
             "discount", "offer", "check out", "link in description", "link below",
@@ -92,7 +77,6 @@ class SponsorClassifier:
         keyword_count = sum(1 for keyword in self.sponsor_keywords if keyword.lower() in text)
         
         # Simple probability based on keyword density
-        # This is a very basic heuristic and should be replaced with ML model predictions
         return min(1.0, keyword_count / 3)  # Cap at 1.0
     
     def _deepseek_classification(self, transcript_segments: List[Tuple[str, float, float]]) -> List[Tuple[int, float, float, str, float]]:
@@ -258,50 +242,44 @@ Return your answer as a valid JSON list of sponsor segments.
         in_sponsor = False
         current_start = 0
         
-        # Only use the segments with probabilities above threshold for merging
-        filtered_segments = [(i, start, end) for i, start, end, _, prob in segment_probs if prob >= threshold]
+        # Sort by start time to handle any non-sequential results (especially from DeepSeek)
+        sorted_probs = sorted(segment_probs, key=lambda x: x[1])
         
-        if not filtered_segments:
-            return []
+        for i, (_, start, end, _, prob) in enumerate(sorted_probs):
+            # Start a new sponsor segment
+            if prob >= threshold and not in_sponsor:
+                in_sponsor = True
+                current_start = start
             
-        # Sort by start time
-        filtered_segments.sort(key=lambda x: x[1])
+            # End the current sponsor segment if probability drops below threshold
+            # or if there's a significant gap (more than 10 seconds)
+            elif in_sponsor and (prob < threshold or (i > 0 and start - sorted_probs[i-1][2] > 10)):
+                sponsor_segments.append({
+                    "startTime": current_start,
+                    "endTime": sorted_probs[i-1][2]  # End time of previous segment
+                })
+                in_sponsor = False
         
-        # Merge nearby segments (within 20 seconds of each other)
-        merged_segments = []
-        current_segment = filtered_segments[0]
-        
-        for i, start, end in filtered_segments[1:]:
-            _, prev_start, prev_end = current_segment
-            
-            # If this segment starts within 20 seconds of the previous segment ending
-            if start - prev_end <= 20:
-                # Merge the segments
-                current_segment = (current_segment[0], prev_start, end)
-            else:
-                # Add the current segment to the merged list and start a new one
-                merged_segments.append(current_segment)
-                current_segment = (i, start, end)
-                
-        # Add the last segment
-        merged_segments.append(current_segment)
-        
-        # Convert to required format
-        for _, start, end in merged_segments:
+        # Add the last segment if we're still in a sponsor segment
+        if in_sponsor:
             sponsor_segments.append({
-                "startTime": start,
-                "endTime": end
+                "startTime": current_start,
+                "endTime": sorted_probs[-1][2]  # End time of last segment
             })
         
-        print(f"Returning {len(sponsor_segments)} sponsor segments")
-        return sponsor_segments
+        # Merge overlapping segments
+        if sponsor_segments:
+            merged_segments = [sponsor_segments[0]]
+            
+            for segment in sponsor_segments[1:]:
+                prev = merged_segments[-1]
+                
+                # If current segment overlaps with previous, merge them
+                if segment["startTime"] <= prev["endTime"] + 5:  # 5 second tolerance for gaps
+                    prev["endTime"] = max(prev["endTime"], segment["endTime"])
+                else:
+                    merged_segments.append(segment)
+            
+            sponsor_segments = merged_segments
         
-    def fine_tune_model(self, training_data):
-        """
-        Fine-tune the model on sponsor detection data.
-        
-        NOTE: This is a placeholder method. Actual implementation would depend on
-        having a labeled dataset of sponsor segments.
-        """
-        # TODO: Implement fine-tuning when labeled data is available
-        pass 
+        return sponsor_segments 

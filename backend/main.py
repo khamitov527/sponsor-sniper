@@ -55,7 +55,7 @@ def get_sponsors():
         transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
         logger.info(f"Transcript length: {len(transcript_list)} segments")
         
-        # Classify sponsor segments using our ML classifier
+        # Classify sponsor segments using DeepSeek API or heuristic fallback
         logger.info(f"Classifying sponsor segments with threshold: {threshold}")
         sponsor_segments = classifier.classify_segments(transcript_list, threshold=threshold)
         logger.info(f"Found {len(sponsor_segments)} sponsor segments")
@@ -127,16 +127,21 @@ def get_sponsors_with_log():
             log_file.write("Segments with non-zero probability of being sponsors:\n")
             log_file.write("-" * 80 + "\n")
             
-            segment_probs = []
-            for i, (text, start, end) in enumerate(processed_segments):
-                prob = classifier._heuristic_classification(text)
-                segment_probs.append((i, start, end, text, prob))
+            # Get segment probabilities (either from DeepSeek or fallback)
+            segment_results = classifier._deepseek_classification(processed_segments)
+            segment_probs = [(i, start, end, text, prob) for i, start, end, text, prob in segment_results]
                 
-                # Log segments with non-zero probability
+            # Log segments with non-zero probability
+            found_sponsors = False
+            for i, start, end, text, prob in segment_probs:
                 if prob > 0:
+                    found_sponsors = True
                     log_file.write(f"Segment {i} ({start:.1f}s - {end:.1f}s): {prob:.2f} probability\n")
                     log_file.write(f"Text: {text[:100]}...\n")
                     log_file.write("-" * 80 + "\n")
+            
+            if not found_sponsors:
+                log_file.write("No sponsor segments found in the analyzed portion.\n")
             
             # Classify sponsor segments
             log_file.write("\nClassifying segments with threshold: {:.1f}\n".format(threshold))
